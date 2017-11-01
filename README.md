@@ -1,2 +1,1 @@
-# Kaggle
-Prediction models for different Kaggle datasets/competitions 
+# Placeholder for random projects
