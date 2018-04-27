@@ -45,7 +45,7 @@ class Series_Generator(object):
 class SequentialLSTM(object):
     def __init__(self, lookback = 1):
         self.epochs = 100
-        self.batch_size = 1
+        self.batch_size = 8
         self.rnn_length = lookback
         self.create_model()
 
@@ -57,7 +57,7 @@ class SequentialLSTM(object):
         self.model.compile(loss='mean_squared_error', optimizer='adam')
 
     def train(self, X, y):
-        self.model.fit(X, y, epochs=self.epochs, batch_size=self.batch_size, verbose = 4)
+        self.model.fit(X, y, epochs=self.epochs, batch_size=self.batch_size, verbose = 0)
 
     def predict(self, X):
         return self.model.predict(X)
@@ -82,9 +82,9 @@ def create_dataset(dataset, look_back=1):
         dataY.append(dataset[i + look_back, 0])
     return np.array(dataX), np.array(dataY)
 
-def run(series, look_back):
+def run(series, look_back, n, N, d):
     sg = Series_Generator()
-    seq = sg.gen_sequence[series](n=1,N=1000)
+    seq = sg.gen_sequence[series](n,N,d)
 
     # split into train and test sets
     dataset = prepare_data(seq)
@@ -127,7 +127,6 @@ def run(series, look_back):
     # shift train predictions for plotting
     trainPredictPlot = np.empty_like(dataset)
     trainPredictPlot[:, :] = np.nan
-    print(trainPredictPlot.shape, trainPredict.shape, dataset.shape)
     trainPredictPlot[look_back:len(trainPredict)+look_back, :] = trainPredict
 
     # shift test predictions for plotting
@@ -139,11 +138,11 @@ def run(series, look_back):
     plt.plot(scaler.inverse_transform(dataset)) # Ground Truth series
     plt.plot(trainPredictPlot) # Train preds
     plt.plot(testPredictPlot, label= "te_" + str(look_back)) # Test preds
-    # plt.show()
+    plt.show()
 
 if __name__ == '__main__':
-    for i in range(5, 12, 2):
-        run(Series.Squares, i)
+    for i in range(5, 30, 5):
+        run(series = Series.AP, look_back= 5, n = 1, N = 1000, d = i)
 
-    plt.legend(mode="expand", borderaxespad=0.)
-    plt.show()
+    # plt.legend(mode="expand", borderaxespad=0., bbox_to_anchor=(1, 0))
+    # plt.show()
