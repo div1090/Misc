@@ -64,7 +64,7 @@ class Series_Generator(object):
     def gen_arc(self, n=0,N = 45, d = 5):
         lst = []
         nst = []
-        for t in range(-d, d):
+        for t in range(-d*100, d*100):
             x = math.sqrt(pow(d, 2) - pow(t / 100, 2))
             lst.append(-x)
             nst.append(x)
@@ -72,12 +72,18 @@ class Series_Generator(object):
         if self.isSeries:
             return nst
         else:
-            return nst,range(-d*10, d*10)
+            x = []
+            y = []
+            for t in range(-d*100, d*100):
+                x.append(t/100)
+                y.append(-t/100)
+            x.extend(y)
+            return nst, x
 
 class Regression(object):
     def __init__(self,var):
-        self.epochs = 300
-        self.batch_size = 4
+        self.epochs = 100
+        self.batch_size = 10
         self.model = None
         self.variables = var
         self.create_model()
@@ -107,7 +113,7 @@ class Regression(object):
 class SequentialLSTM(object):
     def __init__(self, lookback = 1):
         self.epochs = 100
-        self.batch_size = 8
+        self.batch_size = 10
         self.rnn_length = lookback
         self.model = None
         self.create_model()
@@ -234,7 +240,7 @@ def run(series, look_back, n, N, d, model ):
     dataset = scaler.fit_transform(dataset)
 
     # split into train and test sets
-    train_size = int(len(dataset) * 0.70)
+    train_size = int(len(dataset) * 0.8)
     train, test = dataset[0:train_size, :], dataset[train_size:len(dataset), :]
 
 
@@ -283,7 +289,7 @@ def run(series, look_back, n, N, d, model ):
 
 if __name__ == '__main__':
     model = None
-    for i in (8,15,2):
+    for i in (1,3,5):
         if model is None:
             model = Regression(1)
         run(series = Series.Arc, look_back= 1, n = 1, N = 100, d = i, model = model)
