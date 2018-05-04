@@ -82,8 +82,8 @@ class Series_Generator(object):
 
 class Regression(object):
     def __init__(self,var):
-        self.epochs = 100
-        self.batch_size = 10
+        self.epochs = 1000
+        self.batch_size = 100
         self.model = None
         self.variables = var
         self.create_model()
@@ -137,7 +137,6 @@ class SequentialLSTM(object):
 
 
 def prepare_data(series):
-    print(series)
     df = pd.DataFrame(series)
     dataset = df.astype('float32')
 
@@ -160,76 +159,7 @@ def create_lstm_dataset(dataset, look_back=1):
 val_error = []
 train_error = []
 
-# def run(series, look_back, n, N, d, model ):
-#     sg = Series_Generator(isSeries = False)
-#     seq,domain = sg.gen_sequence[series](n,N,d)
-#
-#     dataset = prepare_data(seq)
-#
-#     # normalize the dataset
-#     scaler = MinMaxScaler(feature_range=(0,1))
-#     dataset = scaler.fit_transform(dataset)
-#
-#     # split into train and test sets
-#     train_size = int(len(dataset) * 0.67)
-#     train, test = dataset[0:train_size, :], dataset[train_size:len(dataset), :]
-#
-#
-#     # FOR LSTM
-#     # # reshape into X=t and Y=t+1
-#     # trainX, trainY = create_lstm_dataset(train, look_back)
-#     # testX, testY = create_lstm_dataset(test, look_back)
-#
-#     trainX,testX = np.array(domain[0:train_size]), np.array(domain[train_size:len(dataset)])
-#     trainX = np.reshape(trainX, (trainX.shape[0], 1))
-#     testX = np.reshape(testX, (testX.shape[0], 1))
-#     trainY, testY = train, test
-#
-#     print(trainX)
-#
-#     # create and fit the network
-#     model.train(trainX,trainY)
-#
-#     # make predictions
-#     trainPredict = model.predict(trainX)
-#     testPredict = model.predict(testX)
-#
-#     # calculate root mean squared error (On the normalized data)
-#     trainScore = math.sqrt(mean_squared_error(trainY, trainPredict[:, 0]))
-#     print('Train Score: %.2f RMSE' % (trainScore))
-#     testScore = math.sqrt(mean_squared_error(testY, testPredict[:, 0]))
-#     print('Test Score: %.2f RMSE' % (testScore))
-#
-#     # add to train, test error
-#     train_error.append(trainScore)
-#     val_error.append(testScore)
-#
-#     # invert predictions (reverse the normalization transform we applied)
-#     trainPredict = scaler.inverse_transform(trainPredict)
-#     # trainY = scaler.inverse_transform([trainY])
-#     testPredict = scaler.inverse_transform(testPredict)
-#     # testY = scaler.inverse_transform([testY])
-#
-#     # shift train predictions for plotting
-#     trainPredictPlot = np.empty_like(dataset)
-#     trainPredictPlot[:, :] = np.nan
-#     trainPredictPlot[look_back:len(trainPredict)+look_back, :] = trainPredict
-#
-#     # shift test predictions for plotting
-#     testPredictPlot = np.empty_like(dataset)
-#     testPredictPlot[:, :] = np.nan
-#     testPredictPlot[len(trainPredict)+(look_back*2)+1:len(seq)-1, :] = testPredict
-#
-#     # plot baseline and predictions
-#     plt.figure(2)
-#     plt.plot(scaler.inverse_transform(dataset)) # Ground Truth series
-#     plt.plot(trainPredictPlot) # Train preds
-#     plt.plot(testPredictPlot, label= "te_" + str(d)) # Test preds
-#     # plt.legend(mode="expand", borderaxespad=0., bbox_to_anchor=(1, 0))
-#     # plt.show()
-
-
-def run(series, look_back, n, N, d, model ):
+def run_timeSeries(series, look_back, n, N, d, model ):
     sg = Series_Generator(isSeries = False)
     seq,domain = sg.gen_sequence[series](n,N,d)
 
@@ -240,7 +170,7 @@ def run(series, look_back, n, N, d, model ):
     dataset = scaler.fit_transform(dataset)
 
     # split into train and test sets
-    train_size = int(len(dataset) * 0.8)
+    train_size = int(len(dataset) * 0.67)
     train, test = dataset[0:train_size, :], dataset[train_size:len(dataset), :]
 
 
@@ -253,6 +183,8 @@ def run(series, look_back, n, N, d, model ):
     trainX = np.reshape(trainX, (trainX.shape[0], 1))
     testX = np.reshape(testX, (testX.shape[0], 1))
     trainY, testY = train, test
+
+    print(trainX)
 
     # create and fit the network
     model.train(trainX,trainY)
@@ -273,11 +205,70 @@ def run(series, look_back, n, N, d, model ):
 
     # invert predictions (reverse the normalization transform we applied)
     trainPredict = scaler.inverse_transform(trainPredict)
+    # trainY = scaler.inverse_transform([trainY])
+    testPredict = scaler.inverse_transform(testPredict)
+    # testY = scaler.inverse_transform([testY])
+
+    # shift train predictions for plotting
+    trainPredictPlot = np.empty_like(dataset)
+    trainPredictPlot[:, :] = np.nan
+    trainPredictPlot[look_back:len(trainPredict)+look_back, :] = trainPredict
+
+    # shift test predictions for plotting
+    testPredictPlot = np.empty_like(dataset)
+    testPredictPlot[:, :] = np.nan
+    testPredictPlot[len(trainPredict)+(look_back*2)+1:len(seq)-1, :] = testPredict
+
+    # plot baseline and predictions
+    plt.figure(2)
+    plt.plot(scaler.inverse_transform(dataset)) # Ground Truth series
+    plt.plot(trainPredictPlot) # Train preds
+    plt.plot(testPredictPlot, label= "te_" + str(d)) # Test preds
+    # plt.legend(mode="expand", borderaxespad=0., bbox_to_anchor=(1, 0))
+    # plt.show()
+
+
+def run_mapping(series, look_back, n, N, d, model ):
+    sg = Series_Generator(isSeries = False)
+    seq,domain = sg.gen_sequence[series](n,N,d)
+
+    dataset = prepare_data(seq)
+
+    # normalize the dataset
+    scaler = MinMaxScaler(feature_range=(0,1))
+    dataset = scaler.fit_transform(dataset)
+
+    # split into train and test sets
+    train_size = int(len(dataset) * 0.8)
+    train, test = dataset[0:train_size, :], dataset[train_size:len(dataset), :]
+
+    trainX,testX = np.array(domain[0:train_size]), np.array(domain[train_size:len(dataset)])
+    trainX = np.reshape(trainX, (trainX.shape[0], 1))
+    testX = np.reshape(testX, (testX.shape[0], 1))
+    trainY, testY = train, test
+
+    # create and fit the network
+    model.train(trainX,trainY)
+
+    # make predictions
+    trainPredict = model.predict(trainX)
+    testPredict = model.predict(testX)
+
+    # calculate root mean squared error (On the normalized data)
+    trainScore = 1 - math.sqrt(mean_squared_error(trainY, trainPredict[:, 0]))
+    print('Train Score: %.2f RMSE' % (trainScore))
+    testScore = 1- math.sqrt(mean_squared_error(testY, testPredict[:, 0]))
+    print('Test Score: %.2f RMSE' % (testScore))
+
+    # add to train, test error
+    train_error.append(trainScore)
+    val_error.append(testScore)
+
+    # invert predictions (reverse the normalization transform we applied)
+    trainPredict = scaler.inverse_transform(trainPredict)
     trainY = scaler.inverse_transform(trainY)
     testPredict = scaler.inverse_transform(testPredict)
     testY = scaler.inverse_transform(testY)
-
-    # shift train predictions for plotting
 
     # plot baseline and predictions
     plt.figure(2)
@@ -292,7 +283,7 @@ if __name__ == '__main__':
     for i in (1,3,5):
         if model is None:
             model = Regression(1)
-        run(series = Series.Arc, look_back= 1, n = 1, N = 100, d = i, model = model)
+        run_mapping(series = Series.Arc, look_back= 1, n = 1, N = 100, d = i, model = model)
         model = None
 
 
