@@ -102,3 +102,9 @@ ENV/
 
 
 DataKind/
+*.csv
+*.xml
+*.json
+*.png
+*.txt
+*.jpg
